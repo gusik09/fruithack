@@ -1,0 +1,111 @@
+-- GUI библиотека
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("Fruithack GUI", "DarkTheme")
+
+-- Variables
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+-- FARM TAB
+local farmTab = Window:NewTab("Farm")
+local farmSection = farmTab:NewSection("Автофарм")
+
+local autofarm = false
+farmSection:NewToggle("Включить автофарм", "Фарм ближайших NPC с квестом", function(state)
+    autofarm = state
+end)
+
+spawn(function()
+    while task.wait(0.3) do
+        if autofarm then
+            pcall(function()
+                local enemy = nil
+                local shortest = math.huge
+                for _, mob in pairs(workspace.Enemies:GetChildren()) do
+                    if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                        local dist = (hrp.Position - mob.HumanoidRootPart.Position).Magnitude
+                        if dist < shortest then
+                            shortest = dist
+                            enemy = mob
+                        end
+                    end
+                end
+                if enemy then
+                    hrp.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 15, 5)
+                    local tool = char:FindFirstChildOfClass("Tool")
+                    if tool then
+                        tool:Activate()
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- TELEPORT TAB
+local tpTab = Window:NewTab("Teleport")
+local tpSection = tpTab:NewSection("Быстрые телепорты")
+
+tpSection:NewButton("ТП в Jungle", "Телепортирует в Jungle", function()
+    hrp.CFrame = CFrame.new(-1600, 20, 150)
+end)
+
+tpSection:NewButton("ТП в Marine Fortress", "Телепортирует на форт", function()
+    hrp.CFrame = CFrame.new(-4500, 20, 4300)
+end)
+
+-- MOVEMENT TAB
+local moveTab = Window:NewTab("Movement")
+local moveSection = moveTab:NewSection("Передвижение")
+
+moveSection:NewButton("Fly (E для включения)", "Полёт на клавишу E", function()
+    loadstring(game:HttpGet("https://pastebin.com/raw/x8Tz5gT2"))()
+end)
+
+moveSection:NewSlider("Speed Hack", "Изменить скорость", 200, 16, function(val)
+    char:FindFirstChildOfClass("Humanoid").WalkSpeed = val
+end)
+
+-- STATS TAB
+local statTab = Window:NewTab("Stats")
+local statSection = statTab:NewSection("Прокачка")
+
+statSection:NewButton("Max Melee", "Всё в рукопашку", function()
+    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Melee", 9999)
+end)
+
+statSection:NewButton("Max Blox Fruit", "Всё в фрукт", function()
+    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Demon Fruit", 9999)
+end)
+
+-- FRUITS TAB
+local fruitTab = Window:NewTab("Fruits")
+local fruitSection = fruitTab:NewSection("Автосбор фруктов")
+
+local autofruit = false
+fruitSection:NewToggle("Автосбор фруктов", "Телепорт к фруктам", function(state)
+    autofruit = state
+end)
+
+spawn(function()
+    while task.wait(2) do
+        if autofruit then
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj:IsA("Tool") and string.find(obj.Name:lower(), "fruit") then
+                    hrp.CFrame = obj.Handle.CFrame + Vector3.new(0, 3, 0)
+                    firetouchinterest(char.HumanoidRootPart, obj.Handle, 0)
+                    firetouchinterest(char.HumanoidRootPart, obj.Handle, 1)
+                end
+            end
+        end
+    end
+end)
+
+-- ESP TAB
+local espTab = Window:NewTab("ESP")
+local espSection = espTab:NewSection("ESP Игроков")
+
+espSection:NewButton("Включить ESP игроков", "Показывает игроков сквозь стены", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/zReal-King/Universal-ESP/main/ESP.lua"))()
+end)
