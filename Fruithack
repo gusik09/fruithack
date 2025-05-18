@@ -1,111 +1,159 @@
--- GUI библиотека
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("Fruithack GUI", "DarkTheme")
+-- >> KEY SYSTEM
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local key = "Fruitsstrom"
 
--- Variables
-local player = game.Players.LocalPlayer
-local char = player.Character or player.CharacterAdded:Wait()
-local hrp = char:WaitForChild("HumanoidRootPart")
+local ScreenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+ScreenGui.Name = "KeySystem"
+ScreenGui.ResetOnSpawn = false
 
--- FARM TAB
-local farmTab = Window:NewTab("Farm")
-local farmSection = farmTab:NewSection("Автофарм")
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 300, 0, 180)
+Frame.Position = UDim2.new(0.5, -150, 0.5, -90)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 
-local autofarm = false
-farmSection:NewToggle("Включить автофарм", "Фарм ближайших NPC с квестом", function(state)
-    autofarm = state
+local UICorner = Instance.new("UICorner", Frame)
+UICorner.CornerRadius = UDim.new(0, 12)
+
+local TextBox = Instance.new("TextBox", Frame)
+TextBox.PlaceholderText = "Enter Key"
+TextBox.Size = UDim2.new(0.8, 0, 0, 40)
+TextBox.Position = UDim2.new(0.1, 0, 0.2, 0)
+TextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local Check = Instance.new("TextButton", Frame)
+Check.Text = "Check Key"
+Check.Size = UDim2.new(0.8, 0, 0, 40)
+Check.Position = UDim2.new(0.1, 0, 0.5, 0)
+Check.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+Check.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local GetKey = Instance.new("TextButton", Frame)
+GetKey.Text = "Get Key (Telegram)"
+GetKey.Size = UDim2.new(0.8, 0, 0, 30)
+GetKey.Position = UDim2.new(0.1, 0, 0.75, 0)
+GetKey.BackgroundColor3 = Color3.fromRGB(70, 70, 150)
+GetKey.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+GetKey.MouseButton1Click:Connect(function()
+    setclipboard("https://t.me/+VZqHgPMYzx43ZTcy")
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Key System",
+        Text = "Ссылка скопирована в буфер!",
+        Duration = 4
+    })
 end)
 
-spawn(function()
-    while task.wait(0.3) do
-        if autofarm then
-            pcall(function()
-                local enemy = nil
-                local shortest = math.huge
-                for _, mob in pairs(workspace.Enemies:GetChildren()) do
-                    if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                        local dist = (hrp.Position - mob.HumanoidRootPart.Position).Magnitude
-                        if dist < shortest then
-                            shortest = dist
-                            enemy = mob
+Check.MouseButton1Click:Connect(function()
+    if TextBox.Text == key then
+        ScreenGui:Destroy()
+
+        -- >> GUI SYSTEM
+        local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+        local Window = Library.CreateLib("Fruithack GUI", "DarkTheme")
+
+        local player = game.Players.LocalPlayer
+        local char = player.Character or player.CharacterAdded:Wait()
+        local hrp = char:WaitForChild("HumanoidRootPart")
+
+        -- Farm
+        local farmTab = Window:NewTab("Farm")
+        local farmSection = farmTab:NewSection("Автофарм")
+        local autofarm = false
+        farmSection:NewToggle("Включить автофарм", "Фарм ближайших NPC", function(state)
+            autofarm = state
+        end)
+
+        spawn(function()
+            while task.wait(0.3) do
+                if autofarm then
+                    pcall(function()
+                        local enemy = nil
+                        local shortest = math.huge
+                        for _, mob in pairs(workspace.Enemies:GetChildren()) do
+                            if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                                local dist = (hrp.Position - mob.HumanoidRootPart.Position).Magnitude
+                                if dist < shortest then
+                                    shortest = dist
+                                    enemy = mob
+                                end
+                            end
+                        end
+                        if enemy then
+                            hrp.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 15, 5)
+                            local tool = char:FindFirstChildOfClass("Tool")
+                            if tool then tool:Activate() end
+                        end
+                    end)
+                end
+            end
+        end)
+
+        -- Teleport
+        local tpTab = Window:NewTab("Teleport")
+        local tpSection = tpTab:NewSection("Быстрые телепорты")
+        tpSection:NewButton("ТП в Jungle", "Телепортирует в Jungle", function()
+            hrp.CFrame = CFrame.new(-1600, 20, 150)
+        end)
+        tpSection:NewButton("ТП в Marine Fortress", "Телепортирует на форт", function()
+            hrp.CFrame = CFrame.new(-4500, 20, 4300)
+        end)
+
+        -- Movement
+        local moveTab = Window:NewTab("Movement")
+        local moveSection = moveTab:NewSection("Передвижение")
+        moveSection:NewButton("Fly (E для включения)", "Полёт на клавишу E", function()
+            loadstring(game:HttpGet("https://pastebin.com/raw/x8Tz5gT2"))()
+        end)
+        moveSection:NewSlider("Speed Hack", "Изменить скорость", 200, 16, function(val)
+            char:FindFirstChildOfClass("Humanoid").WalkSpeed = val
+        end)
+
+        -- Stats
+        local statTab = Window:NewTab("Stats")
+        local statSection = statTab:NewSection("Прокачка")
+        statSection:NewButton("Max Melee", "Всё в рукопашку", function()
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Melee", 9999)
+        end)
+        statSection:NewButton("Max Blox Fruit", "Всё в фрукт", function()
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Demon Fruit", 9999)
+        end)
+
+        -- Fruits
+        local fruitTab = Window:NewTab("Fruits")
+        local fruitSection = fruitTab:NewSection("Автосбор фруктов")
+        local autofruit = false
+        fruitSection:NewToggle("Автосбор фруктов", "Телепорт к фруктам", function(state)
+            autofruit = state
+        end)
+
+        spawn(function()
+            while task.wait(2) do
+                if autofruit then
+                    for _, obj in pairs(workspace:GetChildren()) do
+                        if obj:IsA("Tool") and string.find(obj.Name:lower(), "fruit") then
+                            hrp.CFrame = obj.Handle.CFrame + Vector3.new(0, 3, 0)
+                            firetouchinterest(char.HumanoidRootPart, obj.Handle, 0)
+                            firetouchinterest(char.HumanoidRootPart, obj.Handle, 1)
                         end
                     end
                 end
-                if enemy then
-                    hrp.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 15, 5)
-                    local tool = char:FindFirstChildOfClass("Tool")
-                    if tool then
-                        tool:Activate()
-                    end
-                end
-            end)
-        end
-    end
-end)
-
--- TELEPORT TAB
-local tpTab = Window:NewTab("Teleport")
-local tpSection = tpTab:NewSection("Быстрые телепорты")
-
-tpSection:NewButton("ТП в Jungle", "Телепортирует в Jungle", function()
-    hrp.CFrame = CFrame.new(-1600, 20, 150)
-end)
-
-tpSection:NewButton("ТП в Marine Fortress", "Телепортирует на форт", function()
-    hrp.CFrame = CFrame.new(-4500, 20, 4300)
-end)
-
--- MOVEMENT TAB
-local moveTab = Window:NewTab("Movement")
-local moveSection = moveTab:NewSection("Передвижение")
-
-moveSection:NewButton("Fly (E для включения)", "Полёт на клавишу E", function()
-    loadstring(game:HttpGet("https://pastebin.com/raw/x8Tz5gT2"))()
-end)
-
-moveSection:NewSlider("Speed Hack", "Изменить скорость", 200, 16, function(val)
-    char:FindFirstChildOfClass("Humanoid").WalkSpeed = val
-end)
-
--- STATS TAB
-local statTab = Window:NewTab("Stats")
-local statSection = statTab:NewSection("Прокачка")
-
-statSection:NewButton("Max Melee", "Всё в рукопашку", function()
-    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Melee", 9999)
-end)
-
-statSection:NewButton("Max Blox Fruit", "Всё в фрукт", function()
-    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Demon Fruit", 9999)
-end)
-
--- FRUITS TAB
-local fruitTab = Window:NewTab("Fruits")
-local fruitSection = fruitTab:NewSection("Автосбор фруктов")
-
-local autofruit = false
-fruitSection:NewToggle("Автосбор фруктов", "Телепорт к фруктам", function(state)
-    autofruit = state
-end)
-
-spawn(function()
-    while task.wait(2) do
-        if autofruit then
-            for _, obj in pairs(workspace:GetChildren()) do
-                if obj:IsA("Tool") and string.find(obj.Name:lower(), "fruit") then
-                    hrp.CFrame = obj.Handle.CFrame + Vector3.new(0, 3, 0)
-                    firetouchinterest(char.HumanoidRootPart, obj.Handle, 0)
-                    firetouchinterest(char.HumanoidRootPart, obj.Handle, 1)
-                end
             end
-        end
+        end)
+
+        -- ESP
+        local espTab = Window:NewTab("ESP")
+        local espSection = espTab:NewSection("ESP Игроков")
+        espSection:NewButton("Включить ESP игроков", "Показывает игроков сквозь стены", function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/zReal-King/Universal-ESP/main/ESP.lua"))()
+        end)
+
+    else
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Key System",
+            Text = "Неверный ключ!",
+            Duration = 3
+        })
     end
-end)
-
--- ESP TAB
-local espTab = Window:NewTab("ESP")
-local espSection = espTab:NewSection("ESP Игроков")
-
-espSection:NewButton("Включить ESP игроков", "Показывает игроков сквозь стены", function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/zReal-King/Universal-ESP/main/ESP.lua"))()
 end)
